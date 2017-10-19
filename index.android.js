@@ -32,9 +32,7 @@ class DeepLinkingTest extends Component {
   loginGame = () => {
     const params = {
       identifier: 'gbh_user',
-      password: '134',
-      game_id: 1,
-      testing: 1
+      password: '1234',
     };
     const _config = {
       body: JSON.stringify(params),
@@ -44,22 +42,31 @@ class DeepLinkingTest extends Component {
       method: 'POST',
     }
     let response = null;
-    fetch("https://greenstreak.staging.gbh.com.do/api/v1/auth/game", _config)
+    fetch("https://greenstreak.staging.gbh.com.do/api/v1/auth/login", _config)
     .then((res) => {response = res; return response.json()})
-    .then((json) => {
-      if (response.status == 200) {
-        alert(json.access_token);
-      //  GameLoginModule.sendResult(true, json.access_token);
-      } else {
-        alert("");
-        // GameLoginModule.sendResult(false, json.default[0].message);
-      }
-    }).catch((error) => {
+    .then(this.getAccess).catch((error) => {
       alert(error);
       // GameLoginModule.sendResult(false, "");
-    }); 
+    });
   }
+  getAccess(json) {
+    const params = {
+      game_id: 1
+    };
+    const _config  = {
+      body: JSON.stringify(params),
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Api-Token': 'Bearer ' + json.token
+      },
+      method: 'POST',
+    }
+    fetch("https://greenstreak.staging.gbh.com.do/api/v1/play")
+      .then((res) => res.json())
+      .then((_json) => {
 
+      })
+  }
   onNavigatorEvent(event) {
     // handle a deep link
     if (event.type == 'DeepLink') {
@@ -121,10 +128,10 @@ class DeepLinkingTest2 extends Component {
       }
     }).catch((error) => {
       GameLoginModule.sendResult(false, "");
-    }); 
+    });
   }
 
-  
+
   render() {
     return (
       <View style={styles.container}>
@@ -163,26 +170,18 @@ function onActivityCreated(params) {
     screen = 'test2';
   }
   Navigation.startSingleScreenApp({
-    screen: 
+    screen:
       {
         screen: screen, // unique ID registered with Navigation.registerScreen
         title: 'Welcome', // title of the screen as appears in the nav bar (optional)
         navigatorStyle: {}, // override the navigator style for the screen, see "Styling the navigator" below (optional)
-        navigatorButtons: {} 
+        navigatorButtons: {}
       }
   });
-  
+
 }
 function registerScreens() {
   Navigation.registerComponent('test', () => DeepLinkingTest );
   Navigation.registerComponent('test2', () => DeepLinkingTest2 );
 }
 DeviceEventEmitter.addListener("onActivityCreated", onActivityCreated);
-
-
-
-
-
-
-
-
