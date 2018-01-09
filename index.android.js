@@ -23,60 +23,6 @@ class DeepLinkingTest extends Component {
   constructor(props) {
     super(props);
     // if you want to listen on navigator events, set this up
-    this.props.navigator.setOnNavigatorEvent(this.onNavigatorEvent.bind(this));
-  }
-  componentDidMount() {
-    this.loginGame();
-  }
-
-  loginGame = () => {
-    const params = {
-      identifier: 'gbh_user',
-      password: '1234',
-    };
-    const _config = {
-      body: JSON.stringify(params),
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      method: 'POST',
-    }
-    let response = null;
-    fetch("https://greenstreak.staging.gbh.com.do/api/v1/auth/login", _config)
-    .then((res) => {response = res; return response.json()})
-    .then(this.getAccess).catch((error) => {
-      alert(error);
-      // GameLoginModule.sendResult(false, "");
-    });
-  }
-  getAccess(json) {
-    const params = {
-      game_id: 1
-    };
-    const _config  = {
-      body: JSON.stringify(params),
-      headers: {
-        'Content-Type': 'application/json',
-        'X-Api-Token': 'Bearer ' + json.token
-      },
-      method: 'POST',
-    }
-    fetch("https://greenstreak.staging.gbh.com.do/api/v1/play")
-      .then((res) => res.json())
-      .then((_json) => {
-
-      })
-  }
-  onNavigatorEvent(event) {
-    // handle a deep link
-    if (event.type == 'DeepLink') {
-      const parts = event.link.split('/'); // Link parts
-      const payload = event.payload; // (optional) The payload
-      alert(parts)
-      if (parts[0] == 'tab2') {
-        // handle the link somehow, usually run a this.props.navigator command
-      }
-    }
   }
 
   render() {
@@ -98,38 +44,54 @@ class DeepLinkingTest extends Component {
 }
 // register all screens of the app (including internal ones)
 class DeepLinkingTest2 extends Component {
-
-  componentDidMount() {
-    this.loginGame();
-  }
-
-  loginGame = () => {
-    const params = {
-      identifier: 'gbh_user',
-      password: '1234',
-      game_id: 1,
-      testing: 1
-    };
-    const _config = {
-      body: JSON.stringify(params),
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      method: 'POST',
-    }
-    let response = null;
-    fetch("https://greenstreak.staging.gbh.com.do/api/v1/auth/game", _config)
-    .then((res) => {response = res; return response.json()})
-    .then((json) => {
-      if (response.status == 200) {
-       GameLoginModule.sendResult(true, json.access_token);
-      } else {
-        GameLoginModule.sendResult(false, "");
+    componentDidMount() {
+        this.loginGame();
       }
-    }).catch((error) => {
-      GameLoginModule.sendResult(false, "");
-    });
-  }
+      loginGame = () => {
+        const params = {
+          identifier: 'gbh_user',
+          password: '1234',
+        };
+        const _config = {
+          body: JSON.stringify(params),
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          method: 'POST',
+        }
+        let response = null;
+        fetch("https://greenstreak.staging.gbh.com.do/api/v1/auth/login", _config)
+        .then((res) => {response = res; return response.json()})
+        .then(this.getAccess).catch((error) => {
+          alert(error);
+          GameLoginModule.sendResult(false, "");
+        });
+      }
+
+      getAccess(json) {
+        const params = {
+          game_id: '1'
+        };
+        const _config = {
+          body: JSON.stringify(params),
+          headers: {
+            'Content-Type': 'application/json',
+            'x-api-token': 'Bearer '+json.token
+          },
+          method: 'POST',
+        }
+        fetch("https://greenstreak.staging.gbh.com.do/api/v1/play", _config)
+          .then((res) => { response = res; return response.json() })
+          .then((json) => {
+            if (json.code) {
+              GameLoginModule.sendResult(true, json.code);
+            }
+          })
+          .catch((error) => {
+            GameLoginModule.sendResult(false, error);
+            alert(error);
+          });
+      }
 
 
   render() {
@@ -164,11 +126,12 @@ const styles = StyleSheet.create({
 
 function onActivityCreated(params) {
   registerScreens();
-  let screen = 'test';
+  let screen = 'test2';
   if (params.scheme) {
     console.log(params.scheme);
     screen = 'test2';
   }
+  console.log(screen);
   Navigation.startSingleScreenApp({
     screen:
       {

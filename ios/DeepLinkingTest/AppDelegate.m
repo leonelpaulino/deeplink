@@ -15,40 +15,30 @@
 #import <React/RCTEventDispatcher.h>
 #import <React/RCTBundleURLProvider.h>
 #import <React/RCTRootView.h>
-
+#import <React/RCTLinkingManager.h>
 @implementation AppDelegate
+
 NSString *uri;
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 {
   NSURL *jsCodeLocation;
-#ifdef DEBUG
-  jsCodeLocation = [[RCTBundleURLProvider sharedSettings] jsBundleURLForBundleRoot:@"index.ios" fallbackResource:nil];
-#else
-  jsCodeLocation = [[NSBundle mainBundle] URLForResource:@"main" withExtension:@"jsbundle"];
-#endif
+  NSString *codeLocation = @"10.0.0.6:8081";//info[@"jsCodeLocation"];
+  NSString *url = [NSString stringWithFormat:@"http://%@/index.ios.bundle?platform=ios&dev=true", codeLocation];
+  jsCodeLocation = [NSURL URLWithString:url];
   // **********************************************
   // *** DON'T MISS: THIS IS HOW WE BOOTSTRAP *****
   // **********************************************
   self.window = [[UIWindow alloc] initWithFrame:[UIScreen mainScreen].bounds];
   self.window.backgroundColor = [UIColor whiteColor];
-  [[RCCManager sharedInstance] initBridgeWithBundleURL:jsCodeLocation launchOptions:launchOptions];
   
+  [[RCCManager sharedInstance] initBridgeWithBundleURL:jsCodeLocation launchOptions:launchOptions];
   return YES;
 }
 
--(BOOL) application:(UIApplication *)application handleOpenURL:(NSURL *)url
+- (BOOL)application:(UIApplication *)application openURL:(NSURL *)url
+  sourceApplication:(NSString *)sourceApplication annotation:(id)annotation
 {
-  if (!url) {
-    return NO;
-  }
-  uri = [url absoluteString];
-  return YES;
-}
-
-- (void)applicationDidBecomeActive:(UIApplication *)application {
-  [[[RCCManager sharedInstance] getBridge].eventDispatcher sendAppEventWithName:@"onActivityCreated" body:@
-   {
-     @"scheme": uri == nil ? @"" : uri
-   }];
+  return [RCTLinkingManager application:application openURL:url
+                      sourceApplication:sourceApplication annotation:annotation];
 }
 @end
